@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Connect Four Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    #message {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(7, 60px);
+      gap: 5px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .cell {
+      width: 60px;
+      height: 60px;
+      background-color: #ddd;
+      border-radius: 50%;
+      border: 2px solid #555;
+      cursor: pointer;
+    }
+
+    .red {
+      background-color: red !important;
+    }
+
+    .yellow {
+      background-color: yellow !important;
+    }
+
+    .cell.full {
+      cursor: default;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Connect Four</h1>
+  <p id="message">Player 1's Turn (Red)</p>
+  <div class="board" id="board"></div>
+  <button onclick="restartGame()">Restart</button>
+
+  <script>
+    const rows = 6;
+    const cols = 7;
+    let currentPlayer = 'red';
+    let gameOver = false;
+    let board = [];
+
+    const boardElement = document.getElementById('board');
+    const message = document.getElementById('message');
+
+    function createBoard() {
+      boardElement.innerHTML = '';
+      board = [];
+      for (let r = 0; r < rows; r++) {
+        board[r] = [];
+        for (let c = 0; c < cols; c++) {
+          board[r][c] = '';
+          const cell = document.createElement('div');
+          cell.classList.add('cell');
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          boardElement.appendChild(cell);
+        }
+      }
+    }
+
+    function getCellElement(row, col) {
+      return boardElement.querySelector(.cell[data-row='${row}'][data-col='${col}']);
+    }
+
+    function handleClick(e) {
+      if (gameOver) return;
+
+      const col = parseInt(e.target.dataset.col);
+      for (let row = rows - 1; row >= 0; row--) {
+        if (!board[row][col]) {
+          board[row][col] = currentPlayer;
+          const cell = getCellElement(row, col);
+          cell.classList.add(currentPlayer, 'full');
+          if (checkWin(row, col)) {
+            message.textContent = Player ${currentPlayer === 'red' ? '1' : '2'} Wins!;
+            gameOver = true;
+          } else if (isBoardFull()) {
+            message.textContent = "It's a Draw!";
+            gameOver = true;
+          } else {
+            currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+            message.textContent = Player ${currentPlayer === 'red' ? '1' : '2'}'s Turn (${currentPlayer});
+          }
+          return;
+        }
+      }
+    }
+
+    function checkDirection(row, col, rowDir, colDir) {
+      let count = 1;
+      count += countInDirection(row, col, rowDir, colDir);
+      count += countInDirection(row, col, -rowDir, -colDir);
+      return count >= 4;
+    }
+
+    function countInDirection(row, col, rowDir, colDir) {
+      let count = 0;
+      let r = row + rowDir;
+      let c = col + colDir;
+      while (r >= 0 && r < rows && c >= 0 && c < cols && board[r][c] === currentPlayer) {
+        count++;
+        r += rowDir;
+        c += colDir;
+      }
+      return count;
+    }
+
+    function checkWin(row, col) {
+      return (
+        checkDirection(row, col, 0, 1) ||   
+        checkDirection(row, col, 1, 0) ||   
+        checkDirection(row, col, 1, 1) ||   
+        checkDirection(row, col, 1, -1)     
+      );
+    }
+
+    function isBoardFull() {
+      return board.flat().every(cell => cell !== '');
+    }
+
+    function restartGame() {
+      currentPlayer = 'red';
+      gameOver = false;
+      message.textContent = "Player 1's Turn (Red)";
+      createBoard();
+    }
+
+   
+    createBoard();
+    boardElement.addEventListener('click', handleClick);
+  </script>
+</body>
+</html>
